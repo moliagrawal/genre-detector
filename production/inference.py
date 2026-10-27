@@ -43,6 +43,8 @@ class MessyMashupAST_v3(pl.LightningModule):
         outputs = self.ast(x)
         return self.classifier(outputs.last_hidden_state[:, 0, :])
 
+import re
+
 # ==========================================
 # EXPOSED API FUNCTIONS
 # ==========================================
@@ -59,7 +61,25 @@ def loadAST(checkpoint_path):
     # Clean up any leftover criterion/loss weights from training
     clean_dict = {k: v for k, v in state_dict.items() if 'criterion' not in k}
     
-    model.load_state_dict(clean_dict, strict=False)
+    # Transformers 5.x uses 'layers.X' while older checkpoints use 'encoder.layer.X'
+    model_keys = set(model.state_dict().keys())
+    if any('ast.layers.' in k for k in model_keys) and any('ast.encoder.layer.' in k for k in clean_dict):
+        mapped_dict = {}
+        for k, v in clean_dict.items():
+            new_k = k
+            if 'ast.encoder.layer.' in k:
+                new_k = re.sub(r'ast\.encoder\.layer\.(\d+)\.attention\.attention\.query\.', r'ast.layers.\1.attention.q_proj.', new_k)
+                new_k = re.sub(r'ast\.encoder\.layer\.(\d+)\.attention\.attention\.key\.', r'ast.layers.\1.attention.k_proj.', new_k)
+                new_k = re.sub(r'ast\.encoder\.layer\.(\d+)\.attention\.attention\.value\.', r'ast.layers.\1.attention.v_proj.', new_k)
+                new_k = re.sub(r'ast\.encoder\.layer\.(\d+)\.attention\.output\.dense\.', r'ast.layers.\1.attention.o_proj.', new_k)
+                new_k = re.sub(r'ast\.encoder\.layer\.(\d+)\.intermediate\.dense\.', r'ast.layers.\1.mlp.fc1.', new_k)
+                new_k = re.sub(r'ast\.encoder\.layer\.(\d+)\.output\.dense\.', r'ast.layers.\1.mlp.fc2.', new_k)
+                new_k = re.sub(r'ast\.encoder\.layer\.(\d+)\.layernorm_before\.', r'ast.layers.\1.layernorm_before.', new_k)
+                new_k = re.sub(r'ast\.encoder\.layer\.(\d+)\.layernorm_after\.', r'ast.layers.\1.layernorm_after.', new_k)
+            mapped_dict[new_k] = v
+        clean_dict = mapped_dict
+
+    model.load_state_dict(clean_dict, strict=True)
     model.eval()
     return model
 
