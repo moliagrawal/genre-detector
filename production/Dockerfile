@@ -4,11 +4,9 @@ FROM python:3.11-slim
 # Set the working directory
 WORKDIR /app
 
-# 1. Install System Dependencies (ffmpeg for librosa, curl for downloads)
+# 1. Install System Dependencies (ffmpeg for librosa)
 RUN apt-get update && apt-get install -y \
     ffmpeg \
-    curl \
-    tar \
     && rm -rf /var/lib/apt/lists/*
 
 # 2. Install UV (Astral's ultra-fast package manager)
@@ -19,19 +17,9 @@ COPY requirements.txt .
 # --system flag installs directly to the container's python environment
 RUN uv pip install --system --no-cache -r requirements.txt
 
-# 4. Download and Extract the Model
-# We use --fail to stop the build if the link is dead, and --retry for stability
-# 4. Download, Extract, Relocate, and Clean Up
-RUN echo "Downloading AST Model from Kaggle..." \
-    && curl -L --fail --retry 3 -o model.tar.gz "https://www.kaggle.com/api/v1/models/harshitsahu01/ast-psuedo-tuned-v3/pyTorch/v3/4/download" \
-    && echo "Download complete. Extracting archive..." \
-    && tar -xzvf model.tar.gz \
-    && rm model.tar.gz \
-    && echo "Moving weights to root directory..." \
-    && mv checkpoints_v3/best-ast-v3.ckpt ./best-ast-model.ckpt \
-    && echo "Cleaning up unnecessary Kaggle output files..." \
-    && rm -rf checkpoints_v3 wandb __huggingface_repos__* submission.csv \
-    && echo "✅ Model setup successful!"
+# 4. Model checkpoint is mounted at runtime as an external volume
+# Example: docker run -v ./best-ast-model.ckpt:/app/best-ast-model.ckpt:ro ...
+VOLUME ["/app/best-ast-model.ckpt"]
 
 # 5. Copy your application code (app.py, inference.py, etc.)
 COPY . .

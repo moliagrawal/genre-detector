@@ -1,0 +1,27 @@
+# Large model weights (decoupled for external volume mount & HF Hub)
+*.ckpt
+*.pt
+*.bin
+*.tar.gz
+
+# Python & Environment
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv/
+env/
+venv/
+
+# Windows WSL metadata
+*:Zone.Identifier
+
+# IDE & Editor caches
+.claude/
+.vscode/
+.idea/
+
+# Checkpoints & Logs
+checkpoints*/
+wandb/
+.system_generated/

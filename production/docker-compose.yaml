@@ -8,6 +8,8 @@ services:
     container_name: messy-mashup-classifier
     ports:
       - "7860:7860"
+    volumes:
+      - ./best-ast-model.ckpt:/app/best-ast-model.ckpt:ro
     environment:
       # Inject your secret here for local testing. 
       # (In Hugging Face, you set this in the Space Settings UI instead)

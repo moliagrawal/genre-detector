@@ -1,0 +1,9 @@
+torch>=2.0.0
+torchvision
+torchaudio
+transformers
+librosa
+spaces
+numpy
+soundfile
+matplotlib
