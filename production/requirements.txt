@@ -1,0 +1,10 @@
+torch>=2.0.0
+torchvision
+torchaudio
+transformers
+librosa
+pytorch-lightning
+streamlit
+spaces
+pandas
+numpy

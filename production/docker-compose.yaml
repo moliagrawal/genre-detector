@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  messy-mashup-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: messy-mashup-classifier
+    ports:
+      - "7860:7860"
+    environment:
+      # Inject your secret here for local testing. 
+      # (In Hugging Face, you set this in the Space Settings UI instead)
+      - API_SECRET=my_secure_password_123
+    restart: unless-stopped
