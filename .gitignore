@@ -25,3 +25,5 @@ venv/
 checkpoints*/
 wandb/
 .system_generated/
+
+.pptx
